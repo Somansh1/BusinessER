@@ -1,0 +1,16 @@
+#!/bin/bash
+# Build the challenge submission zip in dist/:  qsub pbs/zip.pbs   (from the repo root)
+#PBS -N ber_zip
+#PBS -q workq
+#PBS -l select=1:ncpus=8
+#PBS -j oe
+set -e
+cd "${PBS_O_WORKDIR:-$PWD}"  # submit from the repo root
+rm -rf dist && mkdir -p dist/pkg/output dist/pkg/code/business_entity_resolution
+cp output/matching_results.tsv output/candidate_pairs.tsv dist/pkg/output/
+C=dist/pkg/code/business_entity_resolution
+cp -r src pbs notebooks README.md CONTRACT.md requirements.txt env_freeze.txt $C/
+find $C -name __pycache__ -prune -exec rm -rf {} + ; rm -rf $C/notebooks/.ipynb_checkpoints
+cp Documentation_template.md dist/pkg/
+cd dist/pkg && zip -q -r -6 ../ber_submission.zip . && cd .. && ls -la && unzip -l ber_submission.zip | tail -25
+echo ZIP_DONE

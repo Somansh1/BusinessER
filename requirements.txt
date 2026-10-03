@@ -1,0 +1,19 @@
+# Direct dependencies actually imported by src/ber. Exact versions of the working env: env_freeze.txt
+# torch: pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128
+polars
+pyarrow
+numpy
+scipy
+scikit-learn
+sparse_dot_topn
+rapidfuzz
+lightgbm
+torch==2.8.0
+sentence-transformers
+transformers
+unidecode
+indic-transliteration
+matplotlib
+seaborn
+jupyterlab
+ipykernel

@@ -1,0 +1,25 @@
+# data, artifacts and outputs (hundreds of GB; regenerate with pbs/pipeline.pbs)
+working/
+output/
+output_v1/
+dist/
+logs/
+dataset/
+*.parquet
+*.npy
+*.tsv
+*.zip
+ce_model/
+
+# python / jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+.env
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,6 @@
+# LF everywhere: PBS rejects CRLF scripts ("/bin/bash^M: bad interpreter")
+* text=auto eol=lf
+*.pbs text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.ipynb text eol=lf

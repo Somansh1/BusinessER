@@ -1,0 +1,33 @@
+#!/bin/bash
+# Full pipeline in one GPU job. Sample:  qsub -v BER_DATA=working/sample,BER_WORK=working/smoke pbs/pipeline.pbs
+# Full run:                               qsub pbs/pipeline.pbs     (STAGES env var to run a subset)
+#PBS -N ber_pipe
+#PBS -q gpu
+#PBS -l select=1:ncpus=64:ngpus=1
+#PBS -j oe
+set -e
+cd "${PBS_O_WORKDIR:-$PWD}"  # submit from the repo root
+mkdir -p logs; exec > >(tee -a logs/live_${PBS_JOBID%%.*}.log) 2>&1
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate ber
+module load cuda/12.8 2>/dev/null || true
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export PYTHONPATH=$PWD/src HF_HUB_OFFLINE=1 NJOBS=${NCPUS:-64} OMP_NUM_THREADS=${NCPUS:-64} POLARS_MAX_THREADS=${NCPUS:-64}
+[ -n "$BER_DATA" ] && export BER_DATA=$(realpath $BER_DATA)
+[ -n "$BER_WORK" ] && export BER_WORK=$(realpath -m $BER_WORK) BER_OUT=$(realpath -m $BER_WORK)/output
+# shared nodes: PBS doesn't isolate GPUs, so pin to the one with the most free memory
+if [ -z "$CUDA_VISIBLE_DEVICES" ] && command -v nvidia-smi >/dev/null; then
+  export CUDA_VISIBLE_DEVICES=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits | sort -t, -k2 -nr | head -1 | cut -d, -f1)
+fi
+echo "using GPU $CUDA_VISIBLE_DEVICES"
+echo "host $(hostname) ncpus $NCPUS data ${BER_DATA:-default} work ${BER_WORK:-default}"; nvidia-smi -L 2>/dev/null || true
+STAGES=${STAGES:-"prep:train prep:test folds embed:train embed:test block:train blockgpu:train block:test blockgpu:test features:train ce_data cefit train1 cescore:train train features:test predict1:test cescore:test predict:test"}
+for s in $STAGES; do
+  st=${s%%:*}; sp=${s#*:}; [ "$sp" = "$s" ] && sp=train
+  case $st in
+    blockgpu) python -m ber.run block --split $sp --gpu ;;
+    cefit)    python -m ber.ce train ;;
+    cescore)  python -m ber.ce score --split $sp ;;
+    *)        python -m ber.run $st --split $sp ;;
+  esac
+done

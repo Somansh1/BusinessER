@@ -1,0 +1,11 @@
+#!/bin/bash
+# Execute the notebook in place:  qsub pbs/nb.pbs   (from the repo root)
+#PBS -N ber_nb
+#PBS -q workq
+#PBS -l select=1:ncpus=32
+#PBS -j oe
+cd "${PBS_O_WORKDIR:-$PWD}"/notebooks  # submit from the repo root
+source ~/miniconda3/etc/profile.d/conda.sh; conda activate ber
+export NJOBS=32 OMP_NUM_THREADS=32 POLARS_MAX_THREADS=32
+jupyter nbconvert --to notebook --execute --allow-errors --ExecutePreprocessor.timeout=7200 --ExecutePreprocessor.kernel_name=ber entity_resolution.ipynb --output entity_resolution.ipynb > ../logs/nb.log 2>&1
+echo NB_DONE >> ../logs/nb.log
