@@ -151,3 +151,7 @@ Test: 1,732,544 S1, about 228M candidate pairs. Matched S1 / pairs: France 245,0
 - LaBSE (Apache-2.0), xlm-roberta-large (MIT, ~560M params), LightGBM (MIT); all under 8B params
 - indic-transliteration for Indic scripts (ITRANS)
 - `CONTRACT.md` for schemas, `Documentation_template.md` for methodology
+
+## License
+
+MIT — see [LICENSE](LICENSE). The dataset is distributed separately under Apache-2.0.
